@@ -1,19 +1,13 @@
 require 'rubygems'
 require 'spec'
-
 require 'active_record'
 require 'active_support'
-# begin
-#   require 'ruby-debug'
-# rescue LoadError
-#   puts "ruby-debug not loaded"
-# end
 
 ROOT       = File.join(File.dirname(__FILE__), '..')
 RAILS_ROOT = ROOT
 
 $LOAD_PATH << File.join(ROOT, 'lib')
-# $LOAD_PATH << File.join(ROOT, 'lib', 'scribe')
+$LOAD_PATH << File.join(ROOT, 'lib', 'scribe')
 
 require File.join(ROOT, 'lib', 'scribe.rb')
 
@@ -42,10 +36,14 @@ ActiveRecord::Base.connection.create_table :sharp_claws, :force => true do |tabl
   table.column :updated_at, :datetime
 end
 
-ActiveRecord::Base.send(:include, Scribe)
-Object.send(:remove_const, "Lhurgoyf") rescue nil
-Object.const_set("Lhurgoyf", Class.new(ActiveRecord::Base))
-Lhurgoyf.class_eval do
+ActiveRecord::Base.connection.create_table :changes, :force => true do |table|
+  table.column :model_id, :integer
+  table.column :model_type, :string
+  table.column :diff, :text
+  table.column :created_at, :datetime
+end
+
+class Lhurgoyf < ActiveRecord::Base
   records_changes :attributes => [:name, :description, :power, :toughness],
                   :associations => [:sharp_claws]
   has_many :sharp_claws
@@ -54,15 +52,3 @@ end
 class SharpClaw < ActiveRecord::Base
   records_changes :attributes => [:length, :sharpness, :notes]
 end
-
-# 
-# def temporary_rails_env(new_env)
-#   old_env = defined?(RAILS_ENV) ? RAILS_ENV : nil
-#   silence_warnings do
-#     Object.const_set("RAILS_ENV", new_env)
-#   end
-#   yield
-#   silence_warnings do
-#     Object.const_set("RAILS_ENV", old_env)
-#   end
-# end
