@@ -97,14 +97,11 @@ describe Lhurgoyf do
                                :power => 5,
                                :toughness => 6)
     lambda {
-      b = lhurgoyf.record do
+      change = Scribe.record(lhurgoyf) do
         lhurgoyf.description = 'Native to Dominaria. Large, reptilian creatures, Lhurgoyf are primarily scavengers.'
       end
-      puts 
-      puts b.diff
-      puts     
+      change.save
     }.should change(Scribe::Change, :count).by(1)
-
   end
   
 end

@@ -22,17 +22,6 @@ module Scribe
     end
 
     module InstanceMethods
-      def record(options={}, &block)
-        old_attributes = self.recordable_attributes
-        yield
-        new_attributes = self.recordable_attributes
-        record_change(self.class.diff_attributes(old_attributes, new_attributes))
-      end
-
-      def record_change(attributes)
-        Scribe::Change.create_from_attribute_diff(self, attributes)
-      end
-
       def recordable_attributes
         data = { 'attributes' => attributes.delete_if{|k,v| !self.class.scribe_options[:attributes].include?(k)},
                  'associations' => {} }
@@ -46,7 +35,8 @@ module Scribe
       end
       
       def save_state_as_change
-        record_change(self.class.diff_attributes({'attributes' => {}, 'associations' => {}}, self.recordable_attributes))
+        diff = self.class.diff_attributes({'attributes' => {}, 'associations' => {}}, self.recordable_attributes)
+        Scribe::Change.new_from_attribute_diff(self, diff).save!
       end
     end
 
