@@ -23,8 +23,10 @@ module Scribe
 
     module InstanceMethods
       def recordable_attributes
-        data = { 'attributes' => attributes.delete_if{|k,v| !self.class.scribe_options[:attributes].include?(k)},
-                 'associations' => {} }
+        data = { 'attributes' => {}, 'associations' => {} }
+        self.class.scribe_options[:attributes].each do |attribute|
+          data['attributes'][attribute] = self.send(attribute)
+        end
         self.class.scribe_options[:associations].each do |association|
           data['associations'][association] = {}
           self.send(association, true).each do |model|

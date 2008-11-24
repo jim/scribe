@@ -1,5 +1,4 @@
 class Scribe::Change < ActiveRecord::Base
-  
   belongs_to :model, :polymorphic => true
   
   validates_presence_of :model_id

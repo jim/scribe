@@ -3,6 +3,20 @@ Scribe
 
 Introduction goes here.
 
+Database Requirements
+======
+
+You'll need a migration to create a table to store changes in:
+
+create_table :changes, :force => true do |t|
+  t.integer :model_id
+  t.string :model_type, :limit => 20
+  t.text :diff
+  t.datetime :created_at
+end
+add_index :changes, [ :model_id, :model_type ]
+
+You may want to add other indexes depending on your application.
 
 Example
 =======
