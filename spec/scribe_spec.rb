@@ -1,9 +1,10 @@
 require File.dirname(__FILE__) + '/spec_helper'
+require 'pp'
 
 describe Lhurgoyf do
   
   it "should have scribe options defined on its class" do
-    Lhurgoyf.scribe_options.should == { :attributes => [ 'name', 'description', 'power', 'toughness' ], :associations => [ 'sharp_claws' ] }
+    Lhurgoyf.scribe_options.should == { :attributes => [ 'name', 'description', 'power', 'toughness' ], :associations => { 'sharp_claws' => %w(length sharpness notes) } }
   end
   
   it "should know which attributes are recordable" do
@@ -48,7 +49,7 @@ describe Lhurgoyf do
     
     lhurgoyf = Lhurgoyf.create!
     sharp_claw = lhurgoyf.sharp_claws.create!(sharp_claw_attributes)
-    lhurgoyf.recordable_attributes['associations']['sharp_claws'][sharp_claw.id]['attributes'].should == sharp_claw_attributes
+    lhurgoyf.recordable_attributes['associations']['sharp_claws'][sharp_claw.id].should == sharp_claw_attributes
   end
   
   it "should track the addition of new members to associations" do
@@ -59,13 +60,14 @@ describe Lhurgoyf do
     sharp_claw = lhurgoyf.sharp_claws.create!(sharp_claw_attributes)
     after_attributes = lhurgoyf.recordable_attributes
     
-    expected = {'attributes' => { 'length' => 8, 'sharpness' => 3, 'notes' => 'Somewhat dangerous'},
-                'associations' => {}}
+    expected = {'length' => 8, 'sharpness' => 3, 'notes' => 'Somewhat dangerous'}
+
+    result = Lhurgoyf::diff_attributes(before_attributes, after_attributes)
     
-    Lhurgoyf::diff_attributes(before_attributes, after_attributes)['associations']['sharp_claws'][sharp_claw.id]['new'].should == expected
-    Lhurgoyf::diff_attributes(before_attributes, after_attributes)['associations']['sharp_claws'][sharp_claw.id]['old'].should be_nil
+    result['associations']['sharp_claws'][sharp_claw.id]['new'].should == expected
+    result['associations']['sharp_claws'][sharp_claw.id]['old'].should be_nil
   end
-  
+
   it "should track the removal of new members to associations" do
     sharp_claw_attributes = {'length' => 8, 'sharpness' => 3, 'notes' => "Somewhat dangerous"}
     
@@ -75,11 +77,12 @@ describe Lhurgoyf do
     lhurgoyf.sharp_claws.delete(sharp_claw)
     after_attributes = lhurgoyf.recordable_attributes
     
-    expected = {'attributes' => { 'length' => 8, 'sharpness' => 3, 'notes' => 'Somewhat dangerous'},
-                'associations' => {}}
+    expected = {'length' => 8, 'sharpness' => 3, 'notes' => 'Somewhat dangerous'}
     
-    Lhurgoyf::diff_attributes(before_attributes, after_attributes)['associations']['sharp_claws'][sharp_claw.id]['old'].should == expected
-    Lhurgoyf::diff_attributes(before_attributes, after_attributes)['associations']['sharp_claws'][sharp_claw.id]['new'].should be_nil
+    result = Lhurgoyf::diff_attributes(before_attributes, after_attributes)
+    
+    result['associations']['sharp_claws'][sharp_claw.id]['old'].should == expected
+    result['associations']['sharp_claws'][sharp_claw.id]['new'].should be_nil
   end
   
   it "should create an initial change object" do
@@ -97,10 +100,9 @@ describe Lhurgoyf do
                                :power => 5,
                                :toughness => 6)
     lambda {
-      change = Scribe.record(lhurgoyf) do
-        lhurgoyf.description = 'Native to Dominaria. Large, reptilian creatures, Lhurgoyf are primarily scavengers.'
-      end
-      change.save
+      lhurgoyf.cache_recordable_attributes!
+      lhurgoyf.description = 'Native to Dominaria. Large, reptilian creatures, Lhurgoyf are primarily scavengers.'
+      lhurgoyf.write_changes!
     }.should change(Scribe::Change, :count).by(1)
   end
   

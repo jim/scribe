@@ -5,10 +5,9 @@ module Scribe
   VERSION = "0.1"
   
   def self.record(model, options={}, &block)
-    old_attributes = model.recordable_attributes
+    model.cache_recordable_attributes!
     yield model
-    new_attributes = model.recordable_attributes
-    Scribe::Change.new_from_attribute_diff(model, model.class.diff_attributes(old_attributes, new_attributes))
+    model.write_changes!
   end
   
 end

@@ -45,10 +45,9 @@ end
 
 class Lhurgoyf < ActiveRecord::Base
   records_changes :attributes => [:name, :description, :power, :toughness],
-                  :associations => [:sharp_claws]
+                  :associations => { :sharp_claws => [:length, :sharpness, :notes] }
   has_many :sharp_claws
 end
 
 class SharpClaw < ActiveRecord::Base
-  records_changes :attributes => [:length, :sharpness, :notes]
 end
