@@ -1,5 +1,5 @@
 require 'scribe/model_extensions'
-require 'scribe/change'
+require 'scribe/storage'
 
 module Scribe
   VERSION = "0.1"
@@ -12,6 +12,6 @@ module Scribe
   
 end
 
-# if Object.const_defined?("ActiveRecord")
+if Object.const_defined?("ActiveRecord")
   ActiveRecord::Base.send(:include, Scribe::ModelExtensions)
-# end
+end

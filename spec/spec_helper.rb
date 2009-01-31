@@ -43,9 +43,14 @@ ActiveRecord::Base.connection.create_table :changes, :force => true do |table|
   table.column :created_at, :datetime
 end
 
+class Change < ActiveRecord::Base
+  include Scribe::Storage
+end
+
 class Lhurgoyf < ActiveRecord::Base
   records_changes :attributes => [:name, :description, :power, :toughness],
-                  :associations => { :sharp_claws => [:length, :sharpness, :notes] }
+                  :associations => { :sharp_claws => [:length, :sharpness, :notes] },
+                  :as => 'Change'
   has_many :sharp_claws
 end
 
