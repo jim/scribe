@@ -41,7 +41,9 @@ module Scribe
         end
         self.class.scribe_options[:associations].each_pair do |association, keys|
           data['associations'][association] = {}
-          self.send(association, true).each do |model|
+          assoc = self.send(association, true)
+          assoc = [assoc] unless assoc.respond_to?(:each)
+          assoc.each do |model|
             data['associations'][association][model.id] = {}
             keys.each do |key|
               value = model.send(key)
