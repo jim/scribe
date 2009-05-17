@@ -33,6 +33,8 @@ module Scribe
     end
 
     module InstanceMethods
+      
+      # Returns a nested hash of values to be diffed or stored
       def recordable_attributes
         data = { 'attributes' => {}, 'associations' => {} }
         self.class.scribe_options[:attributes].each do |attribute|
@@ -54,16 +56,25 @@ module Scribe
         data
       end
       
+      # Executes a block, creating a new change object if any changes were made
+      # This is the same sa calling cache_recordable_attributes! before a block of code and write_changes!
+      # afterwards.
       def recording_changes(attributes={}, &block)
         self.cache_recordable_attributes!
         yield
         self.write_changes!(attributes)
       end
       
+      # Saves the result of calling recordable_attributes internally. This must be done before calling write_changes, as
+      # that method relied on this stored data to calculate what changes were made.
       def cache_recordable_attributes!
         @cached_recordable_attributes = recordable_attributes
       end
         
+      # Created a new change object that encapsulates any applicable changes that were made. Must be called after cache_recordable_attributes!.
+      #
+      # Additional attributes to be saved into the change object can be passed in as attributes. A common use for this is a user_id to
+      # associate the change object with
       def write_changes!(attributes={},&block)
         raise 'Attributes must be cached before calling write_changes!' if @cached_recordable_attributes.nil?
         diff = self.class.diff_attributes(@cached_recordable_attributes, recordable_attributes)
@@ -78,6 +89,8 @@ module Scribe
         false
       end 
       
+      # Creates a change object, using totally empty attributes and association as the original state. Only designed to be
+      # used when creating the initial change object for a new record.
       def save_state_as_change!(attributes={})
         @cached_recordable_attributes = { 'attributes' => {}, 'associations' => {} }
         self.write_changes!(attributes)
