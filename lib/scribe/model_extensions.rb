@@ -44,7 +44,9 @@ module Scribe
           assoc = self.send(association, true)
           assoc = [assoc] unless assoc.respond_to?(:each)
           assoc.each do |model|
+            next if model.nil?
             data['associations'][association][model.id] = {}
+            model.valid? # this triggers all kinds of callbacks in many models
             keys.each do |key|
               value = model.send(key)
               data['associations'][association][model.id][key] = value unless value.blank?
