@@ -36,4 +36,29 @@ module Scribe::Storage
     attributes_empty? && associations_empty?
   end
 
+  # Returns whether this change object represents the creation of a record
+  def creation?
+    self.diff['attributes']['new'] && !self.diff['attributes']['old']
+  end
+
+  # Returns whether this change object represents the destruction of a record
+  def destruction?
+    self.diff['attributes']['old'] && !self.diff['attributes']['new']
+  end
+  
+  # Returns whether this change object represents the update of an object or its associations
+  def modification?
+    !self.creation? && !self.destruction?
+  end
+  
+  # Returns whether the attribute attribute_name was altered as a part of this change
+  def attribute_changed?(attribute_name)
+    (self.diff['attributes']['new']||{})[attribute] != (self.diff['attributes']['old']||{})[attribute]
+  end
+  
+  # Returns whether the association attribute_name was altered as a part of this change
+  def association_changed?(associtaion_name) # :nodoc:
+    raise 'Not implemented!'
+  end
+
 end
